@@ -1,0 +1,8 @@
+1. bash /usr/bin 下的命令替换
+update-alternatives --install /usr/bin/mysql java /usr/lib/jvm/java/jdk1.7.0_10/bin/java 300
+sudo update-alternatives --config java
+
+2. 列出已经安装的软件
+ dpkg --list
+
+3. mysql启动

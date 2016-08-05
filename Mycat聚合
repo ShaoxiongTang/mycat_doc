@@ -1,0 +1,76 @@
+MYCAT 聚合操作
+1. group by 
+2. order by 
+3. group by order by having count()
+4. avrg()
+
+
+处理流程：
+校验group by 
+校验having 
+校验是否存在聚合操作 包括sum averg 等，增加grouper
+校验order by，实例化globalSorter，RowPrefixComputer，DataNodeMemoryManager
+
+
+
+datamerge中的主要对象：
+UnsafeExternalRowSorter globalSorter 排序器map
+UnsafeRowGrouper unsafeRowGrouper 
+UnsafeExternalRowSorter globalMergeResult 默认都会创建，用于聚合排序
+
+
+UnsafeRowGrouper 中的主要对象：
+UnsafeFixedWidthAggregationMap group聚合使用的map
+
+UnsafeFixedWidthAggregationMap 中的主要对象：
+emptyAggregationBuffer
+BytesToBytesMap map
+
+
+Group过程：
+1. 接受数据包元数据，生成gruoper， 数据聚合DataNodeMergeManager
+	# 过滤生成havingCol
+	# 过滤聚合语句,如果存在聚合语句就生成grouper
+		> avrg
+		> max min count sum 
+	# 过滤order by生成sorter
+2. 接受QueryHandler响应，项数据归并的队列中添加数据包，第一次添加时启动后台处理线程
+	# 最后一个节点添加完数据包之后，向队列中添加END_FLAG_PACK根据一致性hash输出到内存块上
+	# 向grouper中插入数据到内存块
+		> 注意一个组内的对象可能会被写到不同文件 
+			- 文件存储中group中的每条记录，total length | key legth | kval | val | next point(page number & offset in page)
+		> 记录所有申请的内存块信息
+		> 内容的记录格式
+	# 如果group中order by 
+		处理求平均值
+		过滤having语句
+		取出group map的迭代器，添加到排序迭代器，生成迭代器
+	  else 
+		处理求平均值
+		过滤having语句
+		输出生成迭代器
+3. 归并结果读取;
+	遍历map取出一个KV（point != 0）, 创建当前文件读取器读取文件
+
+Order 过程
+1. 接受数据包元数据，数据聚合DataNodeMergeManager， 生成gruoper
+	# 过滤order by生成sorter
+2. 向sorter中插入元数据
+	排序结构
+	| PageNum+Offset | prefix
+	存储结构
+	| legth | row value 
+	排序值并不需要序列化
+	
+	# 计算比较前缀
+	# 检查内存页中空间是否足够，不够则触发排序刷入硬盘
+	# 把row存入内存块，记录页内偏移地址， 把比较前缀和记录偏移地址插入页 memorysorter
+	# 使用基数排序或者timsort对，偏移前缀组进行排序
+	# 排序后刷入硬盘
+> 基数排序
+
+
+前缀计算的逻辑：排序字段只有一列，可以转化位long类型，非空使用基数排序
+基数排序：额外申请LongArray一倍大小的空间S2，按照last bit排序基数划分空间，遍历longarray重写S2;排序S2重写S1
+内存估算：
+

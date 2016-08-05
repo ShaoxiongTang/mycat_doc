@@ -1,0 +1,23 @@
+owl任务存储结构:
+
+1. server宕机后任务转移到别的server
+2. 任务负载均衡
+3. dubbo 实现负载均衡 zookeeper
+
+
+创建任务：写task节点，同时注册临时节点owner
+task
+
+owl 
+	instances:
+		id1
+		id2
+	instance_tasks:
+		id1
+			tasks
+	   	id2
+			
+  	tasks:
+		task1
+			task_info:任务id，迁移任务id，状态
+   controller:	

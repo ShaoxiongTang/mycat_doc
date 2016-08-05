@@ -1,0 +1,13 @@
+1. bash /usr/bin 下的命令替换
+update-alternatives --install /usr/bin/mysqld_safe mysqld_safe /usr/local/mysql5.7/bin/mysqld_safe 300
+sudo update-alternatives --config java
+
+2. 列出已经安装的软件
+ dpkg --list
+
+3. mysql安装启动 root wj!rp(4<5LJo
+初始化数据库： sudo ./bin/mysqld --no-defaults --initialize --basedir=/usr/local/mysql5.7 --datadir=/usr/local/mysql5.7/data/ --user=mysql 
+启动数据库： sduo ./bin/mysqld_safe --defaults-file=/usr/local/mysql5.7/my.cnf --datadir=/usr/local/mysql5.7/data
+重置root密码： ALTER USER 'root'@'%' IDENTIFIED BY '123456';
+
+

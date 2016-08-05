@@ -1,0 +1,113 @@
+DataNodeMemoryManager：
+内存寻址：
+	堆内存寻址：基本对象 + 对象内64位偏移地址
+	堆外内存寻址：64位偏移地址
+一致性方法：
+	堆外：存储对象64位地址
+	堆内：13位page number + 51位page内偏移地址
+
+DataNodeMergeManager: 
+	非堆内存数据归并管理器，每次连接请求生成
+	acquireExecutionMemory()
+	请求不到更多内存时，执行spill将内存刷新到磁盘
+
+DataNodeDiskManager:磁盘空间管理类
+	DiskRowWriter按照node包装磁盘writer
+
+AbstractDataNodeMerge<-DataNodeMergeManager
+	addPack方法将
+
+UnsafeSorterSpillWriter：
+	外存书写器
+
+ResultMergeMemoryManager：
+	计算能够返回给任务的最大内存，如果小于需求的量将出发向磁盘的spill
+
+
+SortedIterator：
+	返回部分文件排序的迭代器
+
+SpillableIterator：
+	支持内存，外存的迭代器（返回已经排序的结果）
+
+
+UnsafeExternalRowSorter
+元数据接受后绑定排序器创建UnsafeExternalRowSorter
+创建字段sorter->UnsafeExternalSorter
+
+UnsafeExternalSorter构建 UnsafeInMemorySorter 处理文件排序
+构造过程中LongArray
+
+UnsafeExternalSorter
+
+
+UnsafeSorterSpillWriter： 外存文件writer
+UnsafeSorterSpillReader：外存文件reader 继承 UnsafeSorterIterator
+
+UnsafeExternalSorter
+-inMemSorter 内存sorter
+-readingIterator 内存迭代器
+-
+ 
+
+sort 过程：
+1. 解析sql后，构建MultiNodeQueryHandler；需要merge的话绑定DataNodeMergeManager
+1. 向后端每个node发送query，处理fieldEof时根据返回排序字段元数据创建globalSorter(UnsafeExternalRowSorter),UnsafeExternalRowSorter创建UnsafeExternalSorter，
+	UnsafeExternalSorter调用不同的构造方法，有的会创建inMemSorter（UnsafeInMemorySorter）
+	UnsafeExternalSorter包含spillWriters（UnsafeSorterSpillWriter）
+	### UnsafeExternalSorter包含getSortedIterator返回支持内存外存访问的迭代器
+	合并对个	spillWriters文件，加入优先级队列，队列使用prefix和record内容排序--用来实现多个文件的合并排序 
+	UnsafeSorterSpillReader loadnext()把队列中最小的放入优先级队列
+	
+2. 逐个处理返回，最后一个向下执行绑定DataNodeMergeManager
+
+
+
+向sorter中插入记录：
+1. 检查是否有空间插入记录，没有足够空间则通过UnsafeExternalSorter触发spill disk操作
+2. 计算记录长度 + 4是否有足够空间allocatePage 在新的page上写入记录
+
+
+
+
+文件内容格式：
+
+
+写磁盘关键类：
+排序过程中：UnsafeSorterSpillWriter
+接受response过程中：
+
+UnsafeRow 结构：
+[null bit set] [values] [variable length portion]
+null bit set: 使用8 byte记录空值
+values:（8-byte单位）基本数字类型使用一个单位表示
+	变长值使用变量偏移地址 + 变量长度表示
+
+group by过程：
+BytesToBytesMap：
+key的最大值是 2<<29  最多存储2 << 28个key
+longArray用于存储key信息
+2n:keypointer
+2n + 1: keyhashcode
+
+rehash过程：
+hash位置 × 2 ： keypointer
+hash位置 × 2 + 1 ： hashcode
+hashMap 内存结构：
+2n 存最后一个节点的文件页页内偏移量
+2n+1 key对应的hash值
+
+
+map中值的存储格式：
+(8 byte key length) (key) (value) (8 byte pointer to next value)
+	   4| 	  4| 
+klen + vlen | klen | kval | vval | next-op |
+注：next-op 在对象头部添加
+
+row set包： n * lengthcodestring
+row结构：
+
+
+
+
+

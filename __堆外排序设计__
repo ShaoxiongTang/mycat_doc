@@ -1,0 +1,42 @@
+
+
+内存管理：
+ServerMemoryManager： 根内存管理器
+	--管理onheap offheap内存池
+	--内存统计 后台线程轮训freeMemory
+DataMergeMemoryManager：数据归并过程中的内存管理
+> 申请数据归并执行内存
+> 内存不足时，调用已注册的MemorySpiller将其中缓存的内存刷入磁盘
+> 内存统计 后台线程轮训freeMemory 如果线程可以申请到的内存小于page 则进行flush disk； 需要注意活跃线程数
+
+MemorySpiller 内存暂存磁盘抽象类
+> 实现类SortCollector GroupCollector 实现各自的文件存储格式,具体实现类应该持有内存管理分配的MemoryBlock
+
+磁盘管理：
+ServerDiskManager:
+DiskMappingTracker：根据文件名创建获取文件
+DiskWriter: writerBuffer
+
+SortCollector
+GroupCollector
+>Map存储
+
+
+DiskReader
+
+Serialize
+
+MemeryBlock:
+onHeap offHeap
+ResultSet DataMergeExecutin SystemReserveBufferSize
+
+# 排序
+limit start,limitCount 可以沿用之前堆排序处理
+大数据量的排序输出：输出文件，使用timsort
+
+周五之前
+1. 内存映射文件
+2. 排序
+3. 内存管理刷入磁盘
+
+row length | nullbit | 8 byte | 

@@ -1,0 +1,9 @@
+mycat堆外排序开源版本思路：
+堆内堆外排序统一读取
+内存分页
+
+
+MemoryLocation<-MemoryBlock(pageNum,length)
+
+
+

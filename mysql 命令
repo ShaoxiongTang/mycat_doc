@@ -1,0 +1,6 @@
+
+mysql用户ip登陆: 
+	grant all privileges on *.* to 'root'@'%' identified by '123456' with grant option;
+
+CREATE USER 'root'@'%' IDENTIFIED BY '123456'
+
